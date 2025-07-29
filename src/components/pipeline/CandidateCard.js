@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Draggable } from 'react-beautiful-dnd';
+import { Draggable } from '@hello-pangea/dnd';
 
 const CardContainer = styled.div`
   border: 1px solid lightgrey;

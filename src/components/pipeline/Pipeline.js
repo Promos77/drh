@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
-import { DragDropContext } from 'react-beautiful-dnd';
+import { DragDropContext } from '@hello-pangea/dnd';
 import Column from './Column';
 import CVUpload from './CVUpload';
 import { v4 as uuidv4 } from 'uuid';
