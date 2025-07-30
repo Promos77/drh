@@ -44,36 +44,44 @@ const Experience = styled.span`
 `;
 
 const CandidateResultCard = ({ title, company, location, url, skills, experience }) => {
-const handleAnalyze = async () => {
+  // --- DÉBUT DE LA CORRECTION ---
+
+  const handleSaveCandidate = async () => {
+    // 1. On prépare les données à envoyer au backend.
+    //    On s'assure que les noms correspondent à ce que l'API '/api/save-candidate' attend.
+    const candidateData = {
+      title: title, // Le backend attend 'title'
+      company: company || 'Non spécifié', // SÉCURITÉ : Si 'company' est vide, on met une valeur par défaut.
+      location: location || null, // On envoie null si la localisation est vide
+      url: url || null // On envoie null si l'URL est vide
+    };
+
     try {
-        const candidateData = {
-            id: `candidate-${Date.now()}`,
-            name: title,
-            company,
-            location,
-            skills,
-            experience
-        };
-        
-        const response = await fetch('/api/save-candidate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(candidateData)
-        });
-        
-        if (!response.ok) {
-            throw new Error('Échec de l\'enregistrement du candidat');
-        }
-        
-        // TODO: Implémenter une notification utilisateur
-        alert('Candidat ajouté au pipeline !');
+      const response = await fetch('/api/save-candidate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(candidateData)
+      });
+      
+      // 2. On améliore la gestion des erreurs pour afficher le message du backend.
+      if (!response.ok) {
+        const errorResult = await response.json();
+        // On lance une erreur avec le message précis renvoyé par l'API
+        throw new Error(errorResult.error || 'Échec de l\'enregistrement du candidat');
+      }
+      
+      alert('Candidat ajouté au pipeline !');
+
     } catch (error) {
-        console.error('Erreur lors de l\'ajout du candidat:', error);
-        alert('Erreur lors de l\'enregistrement du candidat');
+      console.error('Erreur lors de l\'ajout du candidat:', error);
+      // On affiche l'erreur précise à l'utilisateur
+      alert(`Erreur : ${error.message}`);
     }
-};
+  };
+
+  // --- FIN DE LA CORRECTION ---
 
   return (
     <ResultCardContainer>
@@ -91,7 +99,8 @@ const handleAnalyze = async () => {
           </SkillsContainer>
         )}
       </InfoContainer>
-      <Button onClick={handleAnalyze}>Analyser et Ajouter</Button>
+      {/* On s'assure que le bouton appelle bien la nouvelle fonction corrigée */}
+      <Button onClick={handleSaveCandidate}>Analyser et Ajouter</Button>
     </ResultCardContainer>
   );
 };
