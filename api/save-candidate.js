@@ -1,45 +1,53 @@
-const mysql = require('mysql');
+// On utilise la librairie 'mysql2' et sa version avec "Promises" pour un code plus propre
+const mysql = require('mysql2/promise');
 
-export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+module.exports = async (req, res) => {
+  // On vérifie que la méthode est bien POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
 
-    const candidate = req.body;
-    
-    const connection = mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME
+  // On récupère les données envoyées par le frontend
+  const { title, company, location, url } = req.body;
+
+  // On vérifie que les données essentielles sont présentes
+  if (!title || !company) {
+    return res.status(400).json({ error: 'Missing required candidate data' });
+  }
+
+  let connection;
+  try {
+    // On établit la connexion à la base de données
+    connection = await mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
     });
 
-    try {
-        await new Promise((resolve, reject) => {
-            connection.connect((error) => {
-                if (error) reject(error);
-                resolve();
-            });
-        });
+    // On prépare la requête SQL pour éviter les injections SQL (plus sécurisé)
+    const sql = 'INSERT INTO candidates (name, company, location, source_url, status) VALUES (?, ?, ?, ?, ?)';
+    const values = [title, company, location || null, url || null, 'Sourced'];
 
-        const query = `INSERT INTO candidates (name, company, location, status, created_at) VALUES (?, ?, ?, 'new', NOW())`;
-        
-        await new Promise((resolve, reject) => {
-            connection.query(query, [
-                candidate.name,
-                candidate.company,
-                candidate.location
-            ], (error, results) => {
-                if (error) reject(error);
-                resolve(results);
-            });
-        });
+    // On exécute la requête
+    await connection.execute(sql, values);
 
-        res.status(201).json({ message: 'Candidate saved successfully' });
-    } catch (error) {
-        console.error('Database error:', error);
-        res.status(500).json({ error: error.message });
-    } finally {
-        connection.end();
+    // On ferme la connexion
+    await connection.end();
+
+    // On envoie une réponse de succès
+    res.status(201).json({ message: 'Candidate saved successfully' });
+
+  } catch (error) {
+    // En cas d'erreur, on loge le détail pour le débogage sur Vercel
+    console.error('Database Error:', error);
+
+    // On ferme la connexion si elle était ouverte
+    if (connection) {
+      await connection.end();
     }
-}
+    
+    // On envoie une réponse d'erreur générique au client
+    res.status(500).json({ error: 'Failed to save candidate to the database.' });
+  }
+};
