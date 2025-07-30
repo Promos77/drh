@@ -44,21 +44,36 @@ const Experience = styled.span`
 `;
 
 const CandidateResultCard = ({ title, company, location, url, skills, experience }) => {
-  const handleAnalyze = () => {
-    console.log('Analyse demandée pour :', url);
-    // Envoyer les données du candidat au pipeline Kanban
-    const candidateData = {
-      id: `candidate-${Date.now()}`,
-      name: title,
-      company,
-      location,
-      skills,
-      experience
-    };
-    
-    // TODO: Implémenter l'appel API pour ajouter au pipeline
-    console.log('Données du candidat à ajouter:', candidateData);
-  };
+const handleAnalyze = async () => {
+    try {
+        const candidateData = {
+            id: `candidate-${Date.now()}`,
+            name: title,
+            company,
+            location,
+            skills,
+            experience
+        };
+        
+        const response = await fetch('/api/save-candidate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(candidateData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Échec de l\'enregistrement du candidat');
+        }
+        
+        // TODO: Implémenter une notification utilisateur
+        alert('Candidat ajouté au pipeline !');
+    } catch (error) {
+        console.error('Erreur lors de l\'ajout du candidat:', error);
+        alert('Erreur lors de l\'enregistrement du candidat');
+    }
+};
 
   return (
     <ResultCardContainer>
