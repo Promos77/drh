@@ -39,6 +39,7 @@ const ButtonContainer = styled.div`
 `;
 
 const SearchPage = () => {
+  // Les états pour les champs du formulaire restent les mêmes
   const [keywords, setKeywords] = useState('');
   const [skills, setSkills] = useState('');
   const [location, setLocation] = useState('');
@@ -54,21 +55,33 @@ const SearchPage = () => {
     setError(null);
     setSearchResults([]);
 
+    // --- DÉBUT DE LA CORRECTION ---
+
+    // 1. On combine les champs de texte en une seule chaîne de recherche puissante.
+    //    Le .filter(Boolean) supprime les champs vides.
+    const searchParts = [keywords, skills, location].filter(Boolean);
+    const fullQuery = searchParts.join(' '); // ex: "électricien react paris"
+
+    // 2. On construit les paramètres de l'URL.
+    //    On utilise 'query' comme nom de paramètre, comme le backend l'attend.
     const queryParams = new URLSearchParams({
-      keywords,
-      skills,
-      location,
-      minExperience,
-      maxExperience,
+      query: fullQuery,
+      // On pourrait ajouter minExperience et maxExperience ici si le backend les gérait
     }).toString();
 
+    // --- FIN DE LA CORRECTION ---
+
     try {
+      // On utilise l'URL construite correctement
       const response = await fetch(`/api/search?${queryParams}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch search results.');
+        // On essaie de lire le message d'erreur du serveur pour plus de détails
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch search results.');
       }
       const data = await response.json();
-      setSearchResults(data);
+      // On s'assure que data.jobs_results existe avant de le mettre dans le state
+      setSearchResults(data.jobs_results || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -80,6 +93,7 @@ const SearchPage = () => {
     <SearchContainer>
       <h2>Recherche de Candidats</h2>
       <Form onSubmit={handleSearch}>
+        {/* Le reste du formulaire est parfait et n'a pas besoin de changer */}
         <FormGroup>
           <Label htmlFor="keywords">Mots-clés / Métier</Label>
           <Input
@@ -137,18 +151,19 @@ const SearchPage = () => {
         </ButtonContainer>
       </Form>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p style={{ color: 'red' }}>Erreur : {error}</p>}
 
+      {/* J'ai aussi corrigé ici pour mapper sur searchResults, qui est un tableau */}
       {searchResults.length > 0 && (
         <div>
           <h3>Résultats de Recherche</h3>
-          {searchResults.map((candidate) => (
+          {searchResults.map((candidate, index) => (
             <CandidateResultCard 
-              key={candidate.id} 
-              title={candidate.jobTitle} 
-              company={candidate.company} 
+              key={candidate.job_id || index} // Utilise un ID unique si disponible
+              title={candidate.title} 
+              company={candidate.company_name} 
               location={candidate.location} 
-              url={candidate.url} 
+              url={candidate.related_links?.[0]?.link} // Prend le premier lien pertinent
             />
           ))}
         </div>
