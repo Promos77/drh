@@ -2,6 +2,7 @@ import React from 'react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import styled from 'styled-components';
 import Column from './Column';
+import axios from 'axios'; // Importez axios
 
 const PipelineContainer = styled.div`
   display: flex;
@@ -10,7 +11,7 @@ const PipelineContainer = styled.div`
   gap: 20px;
 `;
 
-const Pipeline = ({ candidates, setCandidates }) => { // Assurez-vous de recevoir setCandidates si vous gérez le drag-and-drop
+const Pipeline = ({ candidates, setCandidates }) => {
 
   // --- DÉBUT DE LA CORRECTION FINALE ---
 
@@ -39,9 +40,47 @@ const Pipeline = ({ candidates, setCandidates }) => { // Assurez-vous de recevoi
     }
   });
 
-  const onDragEnd = (result) => {
-    // Logique pour gérer le déplacement des cartes (à implémenter plus tard si besoin)
-    console.log('Drag ended:', result);
+  const onDragEnd = async (result) => {
+    const { destination, source, draggableId } = result;
+
+    // Si l'élément est déposé en dehors d'une zone de dépôt
+    if (!destination) {
+      return;
+    }
+
+    // Si l'élément est déposé à la même position
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const startColumnId = source.droppableId;
+    const finishColumnId = destination.droppableId;
+
+    // Trouver le candidat déplacé
+    const movedCandidate = candidates.find(c => c.id === draggableId);
+    if (!movedCandidate) return;
+
+    // Mise à jour optimiste de l'état local
+    const originalCandidates = [...candidates]; // Sauvegarde l'état original pour la réversion
+    const newCandidates = candidates.map(candidate =>
+      candidate.id === draggableId ? { ...candidate, status: finishColumnId } : candidate
+    );
+    setCandidates(newCandidates);
+
+    // Appel à l'API pour sauvegarder le changement
+    try {
+      await axios.put('/api/update-candidate-status', {
+        id: draggableId,
+        status: finishColumnId,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut du candidat:', error);
+      alert('Échec de la mise à jour du statut. Annulation de l\'opération.');
+      setCandidates(originalCandidates); // Revert en cas d'erreur
+    }
   };
 
   return (
