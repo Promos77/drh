@@ -44,16 +44,14 @@ const Experience = styled.span`
 `;
 
 const CandidateResultCard = ({ title, company, location, url, skills, experience }) => {
-  // --- DÉBUT DE LA CORRECTION ---
 
   const handleSaveCandidate = async () => {
-    // 1. On prépare les données à envoyer au backend.
-    //    On s'assure que les noms correspondent à ce que l'API '/api/save-candidate' attend.
+    // 1. On prépare les données à envoyer au backend, en s'assurant qu'elles sont valides.
     const candidateData = {
-      title: title, // Le backend attend 'title'
-      company: company || 'Non spécifié', // SÉCURITÉ : Si 'company' est vide, on met une valeur par défaut.
-      location: location || null, // On envoie null si la localisation est vide
-      url: url || null // On envoie null si l'URL est vide
+      title: title,
+      company: company || 'Non spécifié',
+      location: location || null,
+      url: url || null
     };
 
     try {
@@ -65,23 +63,24 @@ const CandidateResultCard = ({ title, company, location, url, skills, experience
         body: JSON.stringify(candidateData)
       });
       
-      // 2. On améliore la gestion des erreurs pour afficher le message du backend.
       if (!response.ok) {
         const errorResult = await response.json();
-        // On lance une erreur avec le message précis renvoyé par l'API
         throw new Error(errorResult.error || 'Échec de l\'enregistrement du candidat');
       }
       
       alert('Candidat ajouté au pipeline !');
 
+      // --- LA MODIFICATION FINALE ---
+      // 2. Une fois le candidat sauvegardé avec succès, on redirige l'utilisateur
+      //    vers la page du pipeline pour qu'il voie le résultat immédiatement.
+      window.location.href = '/'; 
+      // --- FIN DE LA MODIFICATION ---
+
     } catch (error) {
       console.error('Erreur lors de l\'ajout du candidat:', error);
-      // On affiche l'erreur précise à l'utilisateur
       alert(`Erreur : ${error.message}`);
     }
   };
-
-  // --- FIN DE LA CORRECTION ---
 
   return (
     <ResultCardContainer>
@@ -99,7 +98,6 @@ const CandidateResultCard = ({ title, company, location, url, skills, experience
           </SkillsContainer>
         )}
       </InfoContainer>
-      {/* On s'assure que le bouton appelle bien la nouvelle fonction corrigée */}
       <Button onClick={handleSaveCandidate}>Analyser et Ajouter</Button>
     </ResultCardContainer>
   );
