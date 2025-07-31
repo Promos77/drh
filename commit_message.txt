@@ -1,6 +1,5 @@
-feat: Mettre à jour CandidateResultCard.js avec des améliorations et corrections
+fix: Corriger les bugs de redirection et d'affichage des cartes du pipeline
 
-Ce commit met à jour le composant CandidateResultCard.js pour inclure :
-- Une gestion améliorée des erreurs lors de l'enregistrement des candidats.
-- Une validation de type pour la prop 'skills'.
-- Des ajustements mineurs de commentaires et de formatage.
+Ce commit résout deux problèmes majeurs :
+- Le bug de redirection : Le ProtectedRoute attend désormais que l'AuthContext ait terminé de vérifier l'état de connexion, évitant ainsi les redirections prématurées.
+- Le problème d'affichage des cartes du pipeline : La couleur du texte des cartes dans le pipeline est forcée à être sombre pour assurer une meilleure lisibilité sur les fonds clairs.
