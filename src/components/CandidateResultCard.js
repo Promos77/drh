@@ -64,15 +64,15 @@ const CandidateResultCard = ({ title, company, location, url, skills, experience
       
       if (!response.ok) {
         const errorResult = await response.json();
-        throw new Error(errorResult.error || 'Échec de l'enregistrement du candidat');
+        throw new Error(errorResult.error || 'Échec de l\'enregistrement du candidat');
       }
       
       alert('Candidat ajouté au pipeline !');
       window.location.href = '/'; 
 
     } catch (error) {
-      // Voici la syntaxe correcte pour console.error avec plusieurs arguments
-      console.error('Erreur lors de l'ajout du candidat:', error);
+      // Voici la syntaxe 100% correcte pour console.error
+      console.error('Erreur lors de l\'ajout du candidat:', error);
       alert(`Erreur : ${error.message}`);
     }
   };
@@ -85,7 +85,7 @@ const CandidateResultCard = ({ title, company, location, url, skills, experience
           {company} - {location}
         </Details>
         {experience && <Experience>{experience} ans d'expérience</Experience>}
-        {skills && typeof skills === 'string' && ( // Ajout d'une sécurité
+        {skills && typeof skills === 'string' && (
           <SkillsContainer>
             {skills.split(',').map((skill, index) => (
               <SkillTag key={index}>{skill.trim()}</SkillTag>
