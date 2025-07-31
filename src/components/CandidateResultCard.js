@@ -46,7 +46,6 @@ const Experience = styled.span`
 const CandidateResultCard = ({ title, company, location, url, skills, experience }) => {
 
   const handleSaveCandidate = async () => {
-    // 1. On prépare les données à envoyer au backend, en s'assurant qu'elles sont valides.
     const candidateData = {
       title: title,
       company: company || 'Non spécifié',
@@ -65,19 +64,15 @@ const CandidateResultCard = ({ title, company, location, url, skills, experience
       
       if (!response.ok) {
         const errorResult = await response.json();
-        throw new Error(errorResult.error || 'Échec de l\'enregistrement du candidat');
+        throw new Error(errorResult.error || 'Échec de l'enregistrement du candidat');
       }
       
       alert('Candidat ajouté au pipeline !');
-
-      // --- LA MODIFICATION FINALE ---
-      // 2. Une fois le candidat sauvegardé avec succès, on redirige l'utilisateur
-      //    vers la page du pipeline pour qu'il voie le résultat immédiatement.
       window.location.href = '/'; 
-      // --- FIN DE LA MODIFICATION ---
 
     } catch (error) {
-      console.error('Erreur lors de l\'ajout du candidat:', error);
+      // Voici la syntaxe correcte pour console.error avec plusieurs arguments
+      console.error('Erreur lors de l'ajout du candidat:', error);
       alert(`Erreur : ${error.message}`);
     }
   };
@@ -90,7 +85,7 @@ const CandidateResultCard = ({ title, company, location, url, skills, experience
           {company} - {location}
         </Details>
         {experience && <Experience>{experience} ans d'expérience</Experience>}
-        {skills && (
+        {skills && typeof skills === 'string' && ( // Ajout d'une sécurité
           <SkillsContainer>
             {skills.split(',').map((skill, index) => (
               <SkillTag key={index}>{skill.trim()}</SkillTag>
