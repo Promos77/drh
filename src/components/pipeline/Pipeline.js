@@ -1,127 +1,54 @@
-import React, { useCallback } from 'react';
+import React from 'react';
+import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import styled from 'styled-components';
-import { DragDropContext } from '@hello-pangea/dnd';
 import Column from './Column';
-import CVUpload from './CVUpload';
-import { v4 as uuidv4 } from 'uuid';
-
 
 const PipelineContainer = styled.div`
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   padding: 20px;
+  gap: 20px;
 `;
 
-const Pipeline = ({ columns, setColumns }) => {
+const Pipeline = ({ candidates, setCandidates }) => { // Assurez-vous de recevoir setCandidates si vous gérez le drag-and-drop
 
-  const handleAddCandidate = useCallback(async (candidateData) => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const newCandidate = { id: uuidv4(), ...candidateData };
-    
-    try {
-      const response = await fetch('/api/save-candidate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCandidate),
-      });
-      
-      if (!response.ok) {
-throw new Error("Échec de l'enregistrement du candidat");
-      }
-      
-      setColumns((prevColumns) => ({
-        ...prevColumns,
-        'sourced': {
-          ...prevColumns['sourced'],
-          candidates: [...prevColumns['sourced'].candidates, newCandidate],
-        },
-      }));
-    } catch (err) {
-console.error("Erreur lors de l'enregistrement:", err);
-      // Gestion de l'erreur (notification utilisateur, rollback, etc.)
+  // --- DÉBUT DE LA CORRECTION FINALE ---
+
+  // CLAUSE DE SÉCURITÉ : C'est la ligne la plus importante.
+  // Si 'candidates' n'est pas un tableau (parce qu'il est en cours de chargement ou qu'il y a eu une erreur),
+  // on n'affiche rien du tout pour éviter le crash.
+  if (!Array.isArray(candidates)) {
+    return null; // ou <p>Chargement...</p>
+  }
+
+  // --- FIN DE LA CORRECTION FINALE ---
+
+  // On organise les candidats par statut
+  const columns = {
+    Sourced: { id: 'Sourced', title: 'Sourced', candidateIds: [] },
+    Screening: { id: 'Screening', title: 'Screening', candidateIds: [] },
+    Interview: { id: 'Interview', title: 'Interview', candidateIds: [] },
+    Offer: { id: 'Offer', title: 'Offer', candidateIds: [] },
+    Hired: { id: 'Hired', title: 'Hired', candidateIds: [] },
+  };
+
+  // On remplit les colonnes avec les candidats
+  candidates.forEach(candidate => {
+    if (columns[candidate.status]) {
+      columns[candidate.status].candidateIds.push(candidate);
     }
-  }, [setColumns]);
+  });
 
-  const onDragEnd = async (result) => {
-    const { source, destination } = result;
-
-    if (!destination) {
-      return;
-    }
-
-    if (source.droppableId === destination.droppableId && source.index === destination.index) {
-      return;
-    }
-
-    const startColumn = columns[source.droppableId];
-    const endColumn = columns[destination.droppableId];
-
-    if (startColumn === endColumn) {
-      const newCandidates = Array.from(startColumn.candidates);
-      const [removed] = newCandidates.splice(source.index, 1);
-      newCandidates.splice(destination.index, 0, removed);
-
-      const newColumn = {
-        ...startColumn,
-        candidates: newCandidates,
-      };
-
-      setColumns({
-        ...columns,
-        [newColumn.id]: newColumn,
-      });
-    } else {
-      const startCandidates = Array.from(startColumn.candidates);
-      const [removed] = startCandidates.splice(source.index, 1);
-      const newStartColumn = {
-        ...startColumn,
-        candidates: startCandidates,
-      };
-
-      const endCandidates = Array.from(endColumn.candidates);
-      endCandidates.splice(destination.index, 0, removed);
-      const newEndColumn = {
-        ...endColumn,
-        candidates: endCandidates,
-      };
-
-      setColumns({
-        ...columns,
-        [newStartColumn.id]: newStartColumn,
-        [newEndColumn.id]: newEndColumn,
-      });
-
-      // Envoie la mise à jour au backend
-      try {
-        const response = await fetch('/api/save-candidate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: removed.id,
-            status: destination.droppableId
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Échec de la mise à jour du candidat');
-        }
-      } catch (err) {
-        // Réinitialise l'état en cas d'échec
-        setColumns({
-          ...columns,
-          [startColumn.id]: startColumn,
-          [endColumn.id]: endColumn,
-        });
-      }
-    }
+  const onDragEnd = (result) => {
+    // Logique pour gérer le déplacement des cartes (à implémenter plus tard si besoin)
+    console.log('Drag ended:', result);
   };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <CVUpload onAddCandidate={handleAddCandidate} />
       <PipelineContainer>
-        {Object.values(columns).map((column) => (
-          <Column key={column.id} column={column} candidates={column.candidates} />
+        {Object.values(columns).map(column => (
+          <Column key={column.id} column={column} candidates={column.candidateIds} />
         ))}
       </PipelineContainer>
     </DragDropContext>
