@@ -1,5 +1,6 @@
-fix: Corriger les bugs de redirection et d'affichage des cartes du pipeline
+feat: Implémenter le drag-and-drop, la vue détaillée du candidat et l'analyse de CV
 
-Ce commit résout deux problèmes majeurs :
-- Le bug de redirection : Le ProtectedRoute attend désormais que l'AuthContext ait terminé de vérifier l'état de connexion, évitant ainsi les redirections prématurées.
-- Le problème d'affichage des cartes du pipeline : La couleur du texte des cartes dans le pipeline est forcée à être sombre pour assurer une meilleure lisibilité sur les fonds clairs.
+Ce commit introduit les fonctionnalités de la Phase 2 :
+- **Pipeline interactif (Drag & Drop)** : Ajout de l'API `update-candidate-status.js` et implémentation de la logique de drag-and-drop dans `Pipeline.js` avec mise à jour optimiste.
+- **Vue détaillée du candidat et analyse de CV** : Création du composant `Modal.js`, modification de `CandidateCard.js` pour afficher les détails et intégrer l'analyse de CV via `parse-cv.js`. Création de l'API `update-candidate-details.js`.
+- **Prise de notes** : Ajout du champ de notes dans la modale et mise à jour de l'API `update-candidate-details.js` pour gérer les notes.
