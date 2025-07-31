@@ -3,7 +3,11 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
 const ProtectedRoute = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Chargement...</div>;
+  }
 
   // Si l'utilisateur est authentifié, on affiche le contenu de la route (Outlet)
   // Sinon, on le redirige vers la page de connexion

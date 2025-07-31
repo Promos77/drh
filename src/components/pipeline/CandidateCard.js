@@ -8,6 +8,12 @@ const CardContainer = styled.div`
   padding: 8px;
   margin-bottom: 8px;
   background-color: ${props => (props.isDragging ? 'lightgreen' : 'white')};
+  color: #333; /* AJOUTE CETTE LIGNE POUR UN TEXTE SOMBRE */
+
+  h4,
+  p {
+    color: #333; /* Assure que les titres et paragraphes sont sombres */
+  }
 `;
 
 const CandidateCard = ({ candidate, index }) => {

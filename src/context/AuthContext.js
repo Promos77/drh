@@ -9,6 +9,7 @@ const AuthContext = createContext(null);
 // 2. Création du Provider
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Au chargement, on vérifie si l'utilisateur était déjà connecté
   useEffect(() => {
@@ -16,6 +17,7 @@ export const AuthProvider = ({ children }) => {
     if (storedAuth === 'true') {
       setIsAuthenticated(true);
     }
+    setIsLoading(false); // Indique que le chargement est terminé
   }, []);
 
   // Fonction de connexion
@@ -38,6 +40,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     login,
     logout,
+    isLoading, // Expose l'état de chargement
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
