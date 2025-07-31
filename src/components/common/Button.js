@@ -13,7 +13,7 @@ const StyledButton = styled.button`
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: var(--secondary-color);
+    opacity: 0.9;
   }
 
   &:disabled {

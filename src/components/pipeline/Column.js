@@ -25,6 +25,12 @@ const CandidateList = styled.div`
 `;
 
 const Column = ({ column, candidates }) => {
+  if (!Array.isArray(candidates)) {
+    // Si les candidats ne sont pas un tableau (par ex. en cours de chargement ou erreur),
+    // on affiche un message d'attente pour éviter le crash.
+    return <p>Chargement des candidats...</p>;
+  }
+
   return (
     <ColumnContainer>
       <Title>{column.title}</Title>
@@ -35,9 +41,13 @@ const Column = ({ column, candidates }) => {
             {...provided.droppableProps}
             isDraggingOver={snapshot.isDraggingOver}
           >
-            {candidates.map((candidate, index) => (
-              <CandidateCard key={candidate.id} candidate={candidate} index={index} />
-            ))}
+            {candidates.length === 0 ? (
+              <p>Aucun candidat dans cette colonne.</p>
+            ) : (
+              candidates.map((candidate, index) => (
+                <CandidateCard key={candidate.id} candidate={candidate} index={index} />
+              ))
+            )}
             {provided.placeholder}
           </CandidateList>
         )}

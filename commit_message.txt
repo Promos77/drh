@@ -1,1 +1,6 @@
-Initial commit du projet Agiscom-RH
+feat: Mettre à jour CandidateResultCard.js avec des améliorations et corrections
+
+Ce commit met à jour le composant CandidateResultCard.js pour inclure :
+- Une gestion améliorée des erreurs lors de l'enregistrement des candidats.
+- Une validation de type pour la prop 'skills'.
+- Des ajustements mineurs de commentaires et de formatage.

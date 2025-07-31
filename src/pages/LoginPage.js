@@ -1,6 +1,70 @@
 import React, { useState } from 'react';
+import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+
+const LoginContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--background-color);
+`;
+
+const LoginCard = styled.form`
+  background-color: var(--card-background);
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid var(--border-color);
+`;
+
+const Title = styled.h2`
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 10px;
+`;
+
+const Input = styled.input`
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  font-size: 16px;
+
+  &::placeholder {
+    color: var(--text-secondary);
+  }
+`;
+
+const Button = styled.button`
+  padding: 12px;
+  border-radius: 4px;
+  border: none;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const ErrorMessage = styled.p`
+  color: #e53e3e; /* Un rouge pour les erreurs */
+  text-align: center;
+  font-size: 14px;
+`;
 
 const LoginPage = () => {
   const [password, setPassword] = useState('');
@@ -10,8 +74,8 @@ const LoginPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (login(password)) {
+    const success = login(password);
+    if (success) {
       navigate('/');
     } else {
       setError('Mot de passe incorrect');
@@ -19,79 +83,20 @@ const LoginPage = () => {
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      backgroundColor: '#f0f2f5'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '2rem',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '400px'
-      }}>
-        <h2 style={{
-          textAlign: 'center',
-          marginBottom: '1.5rem'
-        }}>Connexion Agiscom RH</h2>
-        
-        <form onSubmit={handleSubmit} style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem'
-        }}>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <label htmlFor="password" style={{
-              marginBottom: '0.5rem',
-              fontWeight: '500'
-            }}>Mot de passe</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                padding: '0.75rem',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                fontSize: '1rem'
-              }}
-            />
-          </div>
-          
-          {error && (
-            <div style={{
-              color: 'red',
-              textAlign: 'center',
-              fontSize: '0.9rem'
-            }}>{error}</div>
-          )}
-          
-          <button
-            type="submit"
-            style={{
-              padding: '0.75rem',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '1rem',
-              cursor: 'pointer'
-            }}
-          >
-            Se connecter
-          </button>
-        </form>
-      </div>
-    </div>
+    <LoginContainer>
+      <LoginCard onSubmit={handleSubmit}>
+        <Title>Accès Recruteur</Title>
+        <Input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Mot de passe"
+          required
+        />
+        <Button type="submit">Connexion</Button>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+      </LoginCard>
+    </LoginContainer>
   );
 };
 

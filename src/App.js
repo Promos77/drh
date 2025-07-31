@@ -1,13 +1,19 @@
 import React from 'react';
 import GlobalStyle from './styles/GlobalStyle';
 import Header from './components/layout/Header';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Pipeline from './components/pipeline/Pipeline';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import PipelinePage from './pages/PipelinePage';
 import SearchPage from './pages/SearchPage';
 import LoginPage from './pages/LoginPage';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { SearchProvider } from './context/SearchContext';
 import ProtectedRoute from './ProtectedRoute';
+
+// Un composant pour afficher le Header uniquement si l'utilisateur est authentifié
+const AppHeader = () => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Header /> : null;
+};
 
 function App() {
   return (
@@ -15,27 +21,15 @@ function App() {
       <AuthProvider>
         <SearchProvider>
           <GlobalStyle />
-          <Header />
+          <AppHeader />
           <main>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Pipeline />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/search"
-                element={
-                  <ProtectedRoute>
-                    <SearchPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route element={<ProtectedRoute />}>
+                {/* Les routes protégées sont des enfants de ProtectedRoute */}
+                <Route path="/" element={<PipelinePage />} />
+                <Route path="/search" element={<SearchPage />} />
+              </Route>
             </Routes>
           </main>
         </SearchProvider>

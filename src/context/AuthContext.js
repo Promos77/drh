@@ -1,40 +1,54 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
-const AuthContext = createContext();
+// Le mot de passe est stocké ici. Dans une application réelle, il viendrait des variables d'environnement.
+const SECRET_PASSWORD = 'P@g43&ysDn8';
 
+// 1. Création du contexte
+const AuthContext = createContext(null);
+
+// 2. Création du Provider
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Au chargement, on vérifie si l'utilisateur était déjà connecté
   useEffect(() => {
-    // Vérifie si l'utilisateur est déjà connecté via localStorage
-    const savedAuth = localStorage.getItem('isAuthenticated');
-    if (savedAuth === 'true') {
+    const storedAuth = localStorage.getItem('isAuthenticated');
+    if (storedAuth === 'true') {
       setIsAuthenticated(true);
     }
   }, []);
 
-  const login = (password) => {
-    // Mot de passe secret pour l'authentification
-    const secretPassword = "AgiscomRH2025!";
-    
-    if (password === secretPassword) {
+  // Fonction de connexion
+  const login = (passwordAttempt) => {
+    if (passwordAttempt === SECRET_PASSWORD) {
       setIsAuthenticated(true);
       localStorage.setItem('isAuthenticated', 'true');
-      return true;
+      return true; // Succès
     }
-    return false;
+    return false; // Échec
   };
 
+  // Fonction de déconnexion
   const logout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('isAuthenticated');
   };
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    isAuthenticated,
+    login,
+    logout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => useContext(AuthContext);
+// 3. Hook personnalisé pour utiliser le contexte plus facilement
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    // Correction de l'erreur de syntaxe ici
+    throw new Error("useAuth doit être utilisé au sein d'un AuthProvider");
+  }
+  return context;
+};

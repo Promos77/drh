@@ -1,18 +1,13 @@
+import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
 
-  if (!isAuthenticated) {
-    // Redirige vers la page de login en gardant la route actuelle en mémoire
-    navigate('/login', { state: { from: location }, replace: true });
-    return null;
-  }
-
-  return children;
+  // Si l'utilisateur est authentifié, on affiche le contenu de la route (Outlet)
+  // Sinon, on le redirige vers la page de connexion
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

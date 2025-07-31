@@ -106,7 +106,6 @@ console.error("Erreur lors de l'enregistrement:", err);
           throw new Error('Échec de la mise à jour du candidat');
         }
       } catch (err) {
-        console.error('Erreur lors de la mise à jour:', err);
         // Réinitialise l'état en cas d'échec
         setColumns({
           ...columns,

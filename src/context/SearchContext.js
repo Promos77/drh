@@ -36,7 +36,6 @@ export const SearchProvider = ({ children }) => {
       // Sauvegarder les paramètres dans localStorage
       localStorage.setItem('lastSearchParams', JSON.stringify(params));
     } catch (err) {
-      console.error('Erreur lors de la recherche:', err);
       // Réinitialiser les résultats en cas d'erreur
       setSearchResults([]);
     }
