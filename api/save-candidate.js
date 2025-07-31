@@ -7,8 +7,23 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // On récupère les données envoyées par le frontend
-  const { title, company, location, url } = req.body;
+// On récupère les données envoyées par le frontend
+  const { id, title, company, location, url, status } = req.body;
+
+  // Gestion de la mise à jour de statut
+  if (id && status) {
+    // Mise à jour de statut
+    const sql = 'UPDATE candidates SET status = ? WHERE id = ?';
+    const values = [status, id];
+    
+    try {
+      await connection.execute(sql, values);
+      res.status(200).json({ message: 'Candidate status updated successfully' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update candidate status' });
+    }
+    return;
+  }
 
   // On vérifie que les données essentielles sont présentes
   if (!title || !company) {

@@ -1,37 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import styled from 'styled-components';
 import { DragDropContext } from '@hello-pangea/dnd';
 import Column from './Column';
 import CVUpload from './CVUpload';
 import { v4 as uuidv4 } from 'uuid';
 
-const initialColumns = {
-  'sourced': {
-    id: 'sourced',
-    title: 'Sourced',
-    candidates: [],
-  },
-  'screening': {
-    id: 'screening',
-    title: 'Screening',
-    candidates: [],
-  },
-  'interview': {
-    id: 'interview',
-    title: 'Interview',
-    candidates: [],
-  },
-  'offer': {
-    id: 'offer',
-    title: 'Offer',
-    candidates: [],
-  },
-  'hired': {
-    id: 'hired',
-    title: 'Hired',
-    candidates: [],
-  },
-};
 
 const PipelineContainer = styled.div`
   display: flex;
@@ -39,21 +12,37 @@ const PipelineContainer = styled.div`
   padding: 20px;
 `;
 
-const Pipeline = () => {
-  const [columns, setColumns] = useState(initialColumns);
+const Pipeline = ({ columns, setColumns }) => {
 
-  const handleAddCandidate = useCallback((candidateData) => {
+  const handleAddCandidate = useCallback(async (candidateData) => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const newCandidate = { id: uuidv4(), ...candidateData };
-    setColumns((prevColumns) => ({
-      ...prevColumns,
-      'sourced': {
-        ...prevColumns['sourced'],
-        candidates: [...prevColumns['sourced'].candidates, newCandidate],
-      },
-    }));
-  }, []);
+    
+    try {
+      const response = await fetch('/api/save-candidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCandidate),
+      });
+      
+      if (!response.ok) {
+throw new Error("Échec de l'enregistrement du candidat");
+      }
+      
+      setColumns((prevColumns) => ({
+        ...prevColumns,
+        'sourced': {
+          ...prevColumns['sourced'],
+          candidates: [...prevColumns['sourced'].candidates, newCandidate],
+        },
+      }));
+    } catch (err) {
+console.error("Erreur lors de l'enregistrement:", err);
+      // Gestion de l'erreur (notification utilisateur, rollback, etc.)
+    }
+  }, [setColumns]);
 
-  const onDragEnd = (result) => {
+  const onDragEnd = async (result) => {
     const { source, destination } = result;
 
     if (!destination) {
@@ -101,6 +90,30 @@ const Pipeline = () => {
         [newStartColumn.id]: newStartColumn,
         [newEndColumn.id]: newEndColumn,
       });
+
+      // Envoie la mise à jour au backend
+      try {
+        const response = await fetch('/api/save-candidate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: removed.id,
+            status: destination.droppableId
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Échec de la mise à jour du candidat');
+        }
+      } catch (err) {
+        console.error('Erreur lors de la mise à jour:', err);
+        // Réinitialise l'état en cas d'échec
+        setColumns({
+          ...columns,
+          [startColumn.id]: startColumn,
+          [endColumn.id]: endColumn,
+        });
+      }
     }
   };
 
