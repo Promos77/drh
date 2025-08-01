@@ -1,62 +1,70 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const formidable = require('formidable');
-const pdf = require('pdf-parse');
-const fs = require('fs');
+const pdfParse = require('pdf-parse');
+const { client } = require('../../src/api/clientApi');
+const fetch = require('node-fetch');
 
-module.exports = async (req, res) => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-        return res.status(500).json({ error: 'Gemini API key not configured' });
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).end();
+  }
+
+  const form = new formidable.IncomingForm();
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error parsing form data' });
     }
 
-    const form = new formidable.IncomingForm();
-    form.parse(req, async (err, fields, files) => {
-        if (err) {
-            return res.status(500).json({ error: 'Error parsing the form' });
-        }
+    const cvFile = files.cv;
+    if (!cvFile) {
+      return res.status(400).json({ error: 'No CV file provided' });
+    }
 
-        const cvFile = files.cv;
-        if (!cvFile) {
-            return res.status(400).json({ error: 'No CV file uploaded' });
-        }
+    try {
+      const dataBuffer = await pdfParse(cvFile);
+      const text = dataBuffer.text;
 
-        try {
-            const dataBuffer = fs.readFileSync(cvFile.filepath);
-            const data = await pdf(dataBuffer);
-            const cvText = data.text;
-
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-            const prompt = `
-            Agis en tant qu'expert en recrutement technique. Analyse le texte de CV suivant et extrais les informations UNIQUEMENT au format JSON. Ne fournis aucune explication, seulement le JSON.
-
-            Le JSON doit avoir la structure suivante :
+      // Send to Gemini API
+      const geminiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_API_KEY', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
             {
-              "name": "Nom complet du candidat",
-              "email": "Adresse email du candidat",
-              "phone": "Numéro de téléphone du candidat",
-              "summary": "Un résumé concis de 2-3 phrases du profil du candidat.",
-              "skills": ["Compétence 1", "Compétence 2", "Compétence 3"],
-              "experience_years": "Nombre total d'années d'expérience",
-              "education": "Dernier diplôme obtenu et l'école"
+              role: 'user',
+              parts: [
+                {
+                  text: `Analyse le CV suivant et extrait les informations suivantes: nom, email, téléphone, résumé, compétences, années d'expérience, éducation. CV: ${text}`
+                }
+              ]
             }
+          ]
+        })
+      });
 
-            Voici le texte du CV à analyser :
-            ---
-            ${cvText}
-            ---
-          `;
+      if (!geminiResponse.ok) {
+        throw new Error('Gemini API error');
+      }
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
-            
-            const jsonData = JSON.parse(text);
-            res.status(200).json(jsonData);
+      const geminiData = await geminiResponse.json();
+      const parsedData = geminiData.candidates[0].content.parts[0].text;
 
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    });
-};
+      // Parse the response (this part may need adjustment based on Gemini's actual response)
+      const result = {
+        name: parsedData.name,
+        email: parsedData.email,
+        phone: parsedData.phone,
+        summary: parsedData.summary,
+        skills: parsedData.skills.split(', '),
+        experience_years: parsedData.experience_years,
+        education: parsedData.education
+      };
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to parse CV' });
+    }
+  });
+}
